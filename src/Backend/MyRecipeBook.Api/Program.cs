@@ -17,7 +17,7 @@ builder.Services.AddSwaggerGen();
 //MyRecipeBook.Application.DependencyInjectionExtension.AddApplication(builder.Services);
 builder.Services.AddApplication();
 //MyRecipeBook.Infrastructure.DependencyInjectionExtension.AddInfraestruct(builder.Services);
-builder.Services.AddInfraestructure();
+builder.Services.AddInfraestructure(builder.Configuration);
 
 builder.Services.Configure<RequestLocalizationOptions>(options => {
     var supportedCultures = new List<CultureInfo> {
