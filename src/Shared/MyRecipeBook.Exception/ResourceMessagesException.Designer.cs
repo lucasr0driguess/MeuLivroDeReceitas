@@ -95,5 +95,14 @@ namespace MyRecipeBook.Exception {
                 return ResourceManager.GetString("VALIDATION_NAME_REQUIRED", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password is required..
+        /// </summary>
+        public static string VALIDATION_PASSWORD_REQUIRED {
+            get {
+                return ResourceManager.GetString("VALIDATION_PASSWORD_REQUIRED", resourceCulture);
+            }
+        }
     }
 }

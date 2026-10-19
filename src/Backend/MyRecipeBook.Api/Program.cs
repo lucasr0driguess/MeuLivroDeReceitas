@@ -5,6 +5,7 @@ using MyRecipeBook.Api.Converter;
 using MyRecipeBook.Application;
 using MyRecipeBook.Infrastructure;
 using System.Globalization;
+using MyRecipeBook.Infrastructure.Migrations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,4 +65,17 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+await ExecuteMigrations();
+
 app.Run();
+
+async Task ExecuteMigrations()
+{
+    await using var scope = app.Services.CreateAsyncScope();
+
+    DatabaseMigrations.ExecuteMigrations(scope.ServiceProvider);
+}
+
+public partial class Program { }
+
+ 
