@@ -1,18 +1,22 @@
 ﻿using CommomTestUtilities.Requests;
-using Mapster;
 using Microsoft.AspNetCore.Mvc.Testing;
-using MyRecipeBook.Api.Controllers;
+using MyRecipeBook.Domain.Extensions;
+using MyRecipeBook.Exception;
+using Shouldly;
+using System.Globalization;
+using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using WebApi.Tests.InlineData;
 
 namespace WebApi.Tests.User.Register;
 
-public class RegisterUserAccountTests: IClassFixture<WebApplicationFactory<Program>>
+public class RegisterUserAccountTests: IClassFixture<MyRecipeBookApplicationFactory>
 {
+    private const string REQUEST_URI = "/users";
     private readonly HttpClient _httpClient;
     
-    
-    
-    public RegisterUserAccountTests(WebApplicationFactory<Program> factory)
+    public RegisterUserAccountTests(MyRecipeBookApplicationFactory factory)
     {
         _httpClient = factory.CreateClient();
     }
@@ -23,6 +27,43 @@ public class RegisterUserAccountTests: IClassFixture<WebApplicationFactory<Progr
     {
         var request = RequestRegisterUserAccountJsonBuilder.Build();
 
-        await _httpClient.PostAsJsonAsync("/users", request);
+        var response = await _httpClient.PostAsJsonAsync(REQUEST_URI, request);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+
+        await using var responseBody = await response.Content.ReadAsStreamAsync();
+
+        var responseData = await JsonDocument.ParseAsync(responseBody);
+
+        responseData.RootElement.GetProperty("name").GetString().ShouldBe(request.Name);
+    }
+
+    [Theory]
+    [ClassData(typeof(CultureInlineData))]
+    public async Task Validate_ShouldBeAnError_WhenNameIsEmpty(string culture)
+    {
+        var request = RequestRegisterUserAccountJsonBuilder.Build();
+        request.Name = string.Empty;
+
+        _httpClient.DefaultRequestHeaders.AcceptLanguage.Clear();
+        _httpClient.DefaultRequestHeaders.AcceptLanguage.ParseAdd(culture);
+
+        var response = await _httpClient.PostAsJsonAsync(REQUEST_URI, request);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    
+        await using var reponseBody = await response.Content.ReadAsStreamAsync();
+
+        var responseData = await JsonDocument.ParseAsync(reponseBody);
+
+        var errors = responseData.RootElement.GetProperty("errors").EnumerateArray();
+
+        var expectedErroMessage = ResourceMessagesException.ResourceManager.GetString("VALIDATION_NAME_REQUIRED", new CultureInfo(culture));
+
+        errors.ShouldSatisfyAllConditions(errors =>
+        {
+            errors.Count().ShouldBe(1);
+            errors.ShouldContain(erro => erro.GetString().IsNotEmpty() &&  erro.GetString()!.Equals(expectedErroMessage));
+        });
     }
 }

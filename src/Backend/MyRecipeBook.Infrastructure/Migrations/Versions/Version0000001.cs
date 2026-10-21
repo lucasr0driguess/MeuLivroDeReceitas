@@ -10,7 +10,7 @@ public class Version0000001 : ForwardOnlyMigration
     {
         Create.Table("Users")
             .WithColumn("Id").AsGuid().PrimaryKey().NotNullable()
-            .WithColumn("AsActive").AsBoolean().NotNullable().WithDefaultValue(true)
+            .WithColumn("Active").AsBoolean().NotNullable().WithDefaultValue(true)
             .WithColumn("CreatedAt").AsDateTime().NotNullable().WithDefaultValue(DateTime.UtcNow)
             .WithColumn("Name").AsString(150).NotNullable()
             .WithColumn("Email").AsString(255).NotNullable()
